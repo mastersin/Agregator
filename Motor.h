@@ -8,7 +8,7 @@ namespace ACRobot {
 class DCMotorInterface: public PollingInterface
 {
   public:
-    DCMotorInterface(): _power(0) {}
+    DCMotorInterface(): _power(0), _new_power(0) {}
     void setPower(uint8_t power) { _power = power; }
 
   protected:
@@ -23,6 +23,9 @@ class DCMotor: public DCMotorInterface
     {
       pinMode(directPin, OUTPUT);
       pinMode(pwmPin, OUTPUT);
+
+      clearDigitalPin(directPin);
+      clearDigitalPin(pwmPin);
     }
 
     void setPower(uint8_t power) { _new_power = power; poll(); };
