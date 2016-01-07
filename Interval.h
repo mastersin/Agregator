@@ -5,7 +5,7 @@
 
 namespace ACRobot {
 
-class Interval
+class Interval: public PollingInterface
 {
   public:
     Interval(long ms): _interval(ms), _last(0) {}
