@@ -22,16 +22,9 @@ bool poll()
   return global.poll();
 }
 
-void wait_for_start()
-{
-  pinMode(button, INPUT_PULLUP);
-  while(getDigitalPin(button) == HIGH);
-  pinMode(button, INPUT);
-}
-
 void setup()
 {
-  wait_for_start();
+  waitForStart(button);
 }
 
 void logic()

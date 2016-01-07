@@ -24,6 +24,13 @@ class PollingInterface
     void poll() {};
 };
 
+inline void waitForStart(uint8_t pin)
+{
+  pinMode(pin, INPUT_PULLUP);
+  while(getDigitalPin(pin) == HIGH);
+  pinMode(pin, INPUT);
+}
+
 } // ACRobot namespace
 
 #endif
