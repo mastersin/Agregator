@@ -1,4 +1,5 @@
 #include "Motor.h"
+#include "Interval.h"
 
 using namespace ACRobot;
 
@@ -11,10 +12,14 @@ const uint8_t button = 2;
 DCMotor mA(directA, pwmA);
 DCMotor mB(directB, pwmB);
 
-void poll()
+Interval global(50);
+
+bool poll()
 {
   mA.poll();
   mB.poll();
+
+  return global.poll();
 }
 
 void wait_for_start()
@@ -29,7 +34,12 @@ void setup()
   wait_for_start();
 }
 
+void logic()
+{
+}
+
 void loop()
 {
-  poll();
+  if(poll())
+    logic();
 }
