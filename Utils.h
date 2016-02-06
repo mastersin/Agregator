@@ -10,6 +10,14 @@
   #include "WProgram.h"
 #endif
 
+#define clear_bit(port,bit) \
+    asm volatile (             \
+        "cbi %0, %1" "\n\t" : : "I" (_SFR_IO_ADDR(port)), "I" (bit))
+
+#define set_bit(port,bit) \
+    asm volatile (             \
+        "sbi %0, %1" "\n\t" : : "I" (_SFR_IO_ADDR(port)), "I" (bit))
+
 #include <inttypes.h>
 
 namespace ACRobot {
