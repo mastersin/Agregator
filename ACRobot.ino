@@ -4,6 +4,8 @@
 
 using namespace ACRobot;
 
+uint8_t power = 75;
+
 const uint8_t directA = 12;
 const uint8_t directB = 13;
 const uint8_t pwmA = 3;
@@ -36,6 +38,13 @@ void setup()
 
 void logic()
 {
+  if (sonar() < 50) {
+    mA = 0;
+    mB = 0;
+  } else {
+    mA = power;
+    mB = power;
+  }
 }
 
 void loop()
