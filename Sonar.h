@@ -18,14 +18,15 @@ class Sonar: public PollingInterface
     int operator() () { return _value; }
     void poll() { _value = readSensor(); }
 
-    const int _maxDist;
-
   protected:
     uint8_t _trigPin;
     uint8_t _echoPin;
     int _value;
 
     int readSensor();
+
+  public:
+    const int _maxDist;
 };
 
 } // ACRobot namespace
