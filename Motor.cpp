@@ -17,7 +17,7 @@ void DCMotor::poll()
   }
 
   _power = _new_power;
-  analogWrite(_pwmPin, _power);
+  analogWrite(_pwmPin, power);
 }
 
 } // ACRobot namespace
