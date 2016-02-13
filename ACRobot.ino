@@ -20,19 +20,32 @@ const uint8_t echoSonar = 9;
 
 Sonar sonar(trigSonar, echoSonar);
 
-Interval global(50);
+enum State {
+    GLOBAL = 0,
+    SONARS = 1,
+    BLINK  = 2
+};
 
-bool poll()
+const unsigned long GLOBAL_INTERVAL = 50;
+const unsigned long SONARS_INTERVAL = 10000;
+const unsigned long BLINK_INTERVAL  = 1000000;
+
+const uint8_t NUMBER_OF_INTERVALS = 3;
+Intervals<NUMBER_OF_INTERVALS> intervals;
+
+int poll()
 {
   mA.poll();
   mB.poll();
-  sonar.poll();
 
-  return global.poll();
+  return intervals.poll();
 }
 
 void setup()
 {
+  intervals[GLOBAL] = GLOBAL_INTERVAL;
+  intervals[SONARS] = SONARS_INTERVAL;
+  intervals[BLINK]  = BLINK_INTERVAL;
   waitForStart(button);
 }
 
@@ -47,8 +60,23 @@ void logic()
   }
 }
 
+void blink()
+{
+    power = -power;
+}
+
 void loop()
 {
-  if(poll())
-    logic();
+  switch (poll())
+  {
+    case GLOBAL:
+      logic();
+      break;
+    case SONARS:
+      sonar.poll();
+      break;
+    case BLINK:
+      blink();
+      break;
+  }
 }
