@@ -26,9 +26,9 @@ enum State {
     BLINK  = 2
 };
 
-const unsigned long GLOBAL_INTERVAL = 50;
-const unsigned long SONARS_INTERVAL = 10000;
-const unsigned long BLINK_INTERVAL  = 1000000;
+const unsigned long GLOBAL_INTERVAL = 10;
+const unsigned long SONARS_INTERVAL = 100;
+const unsigned long BLINK_INTERVAL  = 1000;
 
 const uint8_t NUMBER_OF_INTERVALS = 3;
 Intervals<NUMBER_OF_INTERVALS> intervals;
