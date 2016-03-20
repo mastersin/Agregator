@@ -11,21 +11,36 @@ namespace ACRobot {
 template<class Data>
 class Config: public PollingInterface
 {
+  public:
+    typedef uint8_t name_array[CONFIG_NAME_LEN];
+  private:
     struct Buffer {
-      uint8_t name[CONFIG_NAME_LEN];
+      name_array name;
       uint8_t version;
       Data data;
     } buffer;
   public:
     Config(const char *name, uint8_t version, const Data &default_config);
-    bool poll();
 
-    const Data &operator() () {
+    bool poll();
+    bool poll(const Data &settings) {
+      (*this)(settings);
+      return poll();
+    }
+
+    const Data &operator() () const {
       return buffer.data;
     }
     void operator() (const Data &data) {
-      return buffer.data = data;
       _updated = true;
+      buffer.data = data;
+    }
+
+    const name_array& name() const {
+      return buffer.name;
+    }
+    const uint8_t& version() const {
+      return buffer.version;
     }
 
   private:
