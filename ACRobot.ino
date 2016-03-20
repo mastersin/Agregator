@@ -13,9 +13,6 @@ const uint8_t pwmA = 3;
 const uint8_t pwmB = 11;
 const uint8_t button = 2;
 
-const char   *name = "ACRobot";
-const uint8_t version = 0x01;
-
 struct Settings
 {
   uint8_t status;
@@ -23,7 +20,7 @@ struct Settings
 };
 
 Settings settings = { 0, 0 };
-Config<Settings> config(name, version, settings);
+Config<Settings> config(0x01, settings);
 
 DCMotor mA(directA, pwmA);
 DCMotor mB(directB, pwmB);

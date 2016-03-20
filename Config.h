@@ -8,11 +8,14 @@
 
 namespace ACRobot {
 
+const char *config_default_name = "ACRobot";
+
 template<class Data>
 class Config: public PollingInterface
 {
   public:
     typedef uint8_t name_array[CONFIG_NAME_LEN];
+
   private:
     struct Buffer {
       name_array name;
@@ -21,6 +24,8 @@ class Config: public PollingInterface
     } buffer;
   public:
     Config(const char *name, uint8_t version, const Data &default_config);
+    Config(uint8_t version, const Data &default_config):
+        Config(config_default_name, version, default_config) {};
 
     bool poll();
     bool poll(const Data &settings) {
@@ -47,6 +52,7 @@ class Config: public PollingInterface
 
     uint8_t _updated;
 };
+
 
 template<class Data>
 Config<Data>::Config(const char *name, uint8_t version, const Data &default_config):
