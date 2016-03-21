@@ -5,10 +5,9 @@
 #include <EEPROM.h>
 
 #define CONFIG_NAME_LEN 7
+#define CONFIG_DEFAULT_NAME "ACRobot"
 
 namespace ACRobot {
-
-const char *config_default_name = "ACRobot";
 
 template<class Data>
 class Config: public PollingInterface
@@ -25,7 +24,7 @@ class Config: public PollingInterface
   public:
     Config(const char *name, uint8_t version, const Data &default_config);
     Config(uint8_t version, const Data &default_config):
-        Config(config_default_name, version, default_config) {};
+        Config(CONFIG_DEFAULT_NAME, version, default_config) {};
 
     bool poll();
     bool poll(const Data &settings) {
