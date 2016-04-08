@@ -26,6 +26,9 @@ void setDigitalPin(uint8_t pin);
 void clearDigitalPin(uint8_t pin);
 uint8_t getDigitalPin(uint8_t pin);
 
+void setOutputPin(uint8_t pin);
+void setInputPin(uint8_t pin);
+
 class PollingInterface
 {
   public:
@@ -36,7 +39,16 @@ inline void waitForStart(uint8_t pin)
 {
   pinMode(pin, INPUT_PULLUP);
   while(getDigitalPin(pin) == HIGH);
-  pinMode(pin, INPUT);
+  clearDigitalPin(pin);
+  setInputPin(pin);
+}
+
+inline void waitForStartWithLED(uint8_t pin)
+{
+  pinMode(pin, INPUT_PULLUP);
+  while(getDigitalPin(pin) == HIGH);
+  setOutputPin(pin);
+  clearDigitalPin(pin);
 }
 
 } // ACRobot namespace

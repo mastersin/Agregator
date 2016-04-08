@@ -39,5 +39,33 @@ uint8_t getDigitalPin(uint8_t pin)
   return LOW;
 }
 
+void setOutputPin(uint8_t pin)
+{
+  uint8_t bit = digitalPinToBitMask(pin);
+  uint8_t port = digitalPinToPort(pin);
+  volatile uint8_t *reg = portModeRegister(port);
+
+  uint8_t oldSREG = SREG;
+  cli();
+
+  *reg |= bit;
+
+  SREG = oldSREG;
+}
+
+void setInputPin(uint8_t pin)
+{
+  uint8_t bit = digitalPinToBitMask(pin);
+  uint8_t port = digitalPinToPort(pin);
+  volatile uint8_t *reg = portModeRegister(port);
+
+  uint8_t oldSREG = SREG;
+  cli();
+
+  *reg &= ~bit;
+
+  SREG = oldSREG;
+}
+
 } // ACRobot namespace
 

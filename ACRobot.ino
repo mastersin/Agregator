@@ -62,7 +62,7 @@ void setup()
   intervals[BLINK]  = BLINK_INTERVAL;
   intervals[CONFIG] = CONFIG_INTERVAL;
 
-  waitForStart(button);
+  waitForStartWithLED(button);
 }
 
 void logic()
