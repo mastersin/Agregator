@@ -9,10 +9,12 @@ bool DCMotor::poll()
 
   register uint8_t power = _new_power;
 
-  if (_new_power >= 0 && _power < 0)
-    clearDigitalPin(_directPin);
-  else if (_new_power < 0 && _power >= 0) {
-    setDigitalPin(_directPin);
+  if (_new_power >= 0) {
+    if(_power < 0)
+      clearDigitalPin(_directPin);
+  } else {
+    if (_power >= 0)
+      setDigitalPin(_directPin);
     power = -_new_power;
   }
 

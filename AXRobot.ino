@@ -5,7 +5,7 @@
 
 using namespace ACRobot;
 
-uint8_t power = 75;
+int16_t power = 75;
 
 const uint8_t directA = 12;
 const uint8_t directB = 13;
