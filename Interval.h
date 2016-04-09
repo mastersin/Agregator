@@ -23,11 +23,11 @@ class Interval: public PollingInterface
 };
 
 template <int n>
-class Intervals: public PollingInterface
+class Intervals
 {
   public:
     Intervals() {}
-    int poll()
+    int status()
     {
       unsigned long ms = millis();
       for (register int i = 0; i < n; i++)

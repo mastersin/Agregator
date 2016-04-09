@@ -32,7 +32,7 @@ void setInputPin(uint8_t pin);
 class PollingInterface
 {
   public:
-    void poll() {};
+    virtual bool poll() { return false; };
 };
 
 inline void waitForStart(uint8_t pin)

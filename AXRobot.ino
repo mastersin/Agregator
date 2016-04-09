@@ -50,7 +50,7 @@ int poll()
   mA.poll();
   mB.poll();
 
-  return intervals.poll();
+  return intervals.status();
 }
 
 void setup()
