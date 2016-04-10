@@ -1,4 +1,4 @@
-#include "Motor.h"
+#include "Steering.h"
 #include "Sonar.h"
 #include "Config.h"
 #include "Interval.h"
@@ -24,6 +24,7 @@ Config<Settings> config(0x01, settings);
 
 DCMotor mA(directA, pwmA);
 DCMotor mB(directB, pwmB);
+Steering mControl(mA, mB);
 
 const uint8_t trigSonar = 8;
 const uint8_t echoSonar = 9;
@@ -47,8 +48,7 @@ Intervals<NUMBER_OF_INTERVALS> intervals;
 
 int poll()
 {
-  mA.poll();
-  mB.poll();
+  mControl.poll();
 
   return intervals.status();
 }
@@ -68,11 +68,9 @@ void setup()
 void logic()
 {
   if (sonar() < 50) {
-    mA = 0;
-    mB = 0;
+    mControl = -power;
   } else {
-    mA = power;
-    mB = power;
+    mControl = power;
   }
 }
 
