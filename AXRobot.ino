@@ -3,6 +3,8 @@
 #include "Config.h"
 #include "Interval.h"
 
+//#define DEBUG
+
 using namespace ACRobot;
 
 int16_t power = 75;
@@ -59,6 +61,10 @@ int poll()
 
 void setup()
 {
+#ifdef DEBUG
+  Serial.begin(9600);
+#endif
+
   settings = config();
 
   intervals[GLOBAL] = GLOBAL_INTERVAL;
@@ -66,7 +72,15 @@ void setup()
   intervals[BLINK]  = BLINK_INTERVAL;
   intervals[CONFIG] = CONFIG_INTERVAL;
 
+#ifdef DEBUG
+  Serial.println("wait");
+#endif
+
   waitForStartWithLED(button);
+
+#ifdef DEBUG
+  Serial.println("start");
+#endif
 }
 
 void logic()
@@ -95,6 +109,14 @@ void blink()
   static int angle = 180;
   angle = -angle;
   mControl.setAngle(angle);
+
+#ifdef DEBUG
+  Serial.print("left sonar = ");
+  Serial.println(leftSonar());
+  Serial.print("right sonar = ");
+  Serial.println(rightSonar());
+  Serial.println();
+#endif
 }
 
 void loop()
