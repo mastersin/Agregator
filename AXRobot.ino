@@ -7,7 +7,7 @@
 
 using namespace ACRobot;
 
-int16_t power = 75;
+int16_t power = -145;
 
 const uint8_t directA = 12;
 const uint8_t directB = 13;
@@ -85,7 +85,7 @@ void setup()
 
 void logic()
 {
-  if (leftSonar() < 50 || rightSonar() < 50) {
+  if (leftSonar() < 100 || rightSonar() < 100) {
     mControl = -power;
   } else {
     mControl = power;
