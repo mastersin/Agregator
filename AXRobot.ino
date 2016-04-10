@@ -106,9 +106,18 @@ void sonars()
 
 void blink()
 {
+  static bool led = true;
   static int angle = 180;
-  angle = -angle;
+
+  if (led)
+    clearDigitalPin(button);
+  else
+    setDigitalPin(button);
+
   mControl.setAngle(angle);
+
+  led = !led;
+  angle = -angle;
 
 #ifdef DEBUG
   Serial.print("left sonar = ");
