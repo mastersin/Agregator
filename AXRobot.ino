@@ -28,10 +28,12 @@ DCMotorBreak mA(directA, pwmA, breakA);
 DCMotorBreak mB(directB, pwmB, breakB);
 Steering mControl(mA, mB);
 
-const uint8_t trigSonar = 4;
-const uint8_t echoSonar = 7;
+const uint8_t trigSonarPin = 4;
+const uint8_t leftSonarPin = 7;
+const uint8_t rightSonarPin = 10;
 
-Sonar sonar(trigSonar, echoSonar);
+Sonar leftSonar(trigSonarPin, leftSonarPin);
+Sonar rightSonar(trigSonarPin, rightSonarPin);
 
 enum State {
     GLOBAL = 0,
@@ -69,16 +71,30 @@ void setup()
 
 void logic()
 {
-  if (sonar() < 50) {
+  if (leftSonar() < 50 || rightSonar() < 50) {
     mControl = -power;
   } else {
     mControl = power;
   }
 }
 
+void sonars()
+{
+  static bool flipflop = false;
+
+  if (flipflop)
+    leftSonar.poll();
+  else
+    rightSonar.poll();
+
+  flipflop = !flipflop;
+}
+
 void blink()
 {
-    power = -power;
+  static int angle = 180;
+  angle = -angle;
+  mControl.setAngle(angle);
 }
 
 void loop()
@@ -89,7 +105,7 @@ void loop()
       logic();
       break;
     case SONARS:
-      sonar.poll();
+      sonars();
       break;
     case BLINK:
       blink();
