@@ -41,6 +41,30 @@ class DCMotor: public DCMotorInterface
     uint8_t _pwmPin;
 };
 
+class DCMotorBreak: public DCMotor
+{
+  public:
+    DCMotorBreak(uint8_t directPin, uint8_t pwmPin, uint8_t breakPin):
+      DCMotor(directPin, pwmPin), _breakPin(breakPin)
+    {
+      pinMode(breakPin, OUTPUT);
+      go();
+    }
+
+    const int16_t& operator= (int16_t power) { return set(power); };
+    operator int16_t const () { return _power; }
+
+    void stop() {
+      setDigitalPin(_breakPin);
+    }
+    void go() {
+      clearDigitalPin(_breakPin);
+    }
+
+  private:
+    uint8_t _breakPin;
+};
+
 } // ACRobot namespace
 
 #endif

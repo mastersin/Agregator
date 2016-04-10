@@ -11,6 +11,8 @@ const uint8_t directA = 12;
 const uint8_t directB = 13;
 const uint8_t pwmA = 3;
 const uint8_t pwmB = 11;
+const uint8_t breakA = 9;
+const uint8_t breakB = 8;
 const uint8_t button = 2;
 
 struct Settings
@@ -22,12 +24,12 @@ struct Settings
 Settings settings = { 0, 0 };
 Config<Settings> config(0x01, settings);
 
-DCMotor mA(directA, pwmA);
-DCMotor mB(directB, pwmB);
+DCMotorBreak mA(directA, pwmA, breakA);
+DCMotorBreak mB(directB, pwmB, breakB);
 Steering mControl(mA, mB);
 
-const uint8_t trigSonar = 8;
-const uint8_t echoSonar = 9;
+const uint8_t trigSonar = 4;
+const uint8_t echoSonar = 7;
 
 Sonar sonar(trigSonar, echoSonar);
 
