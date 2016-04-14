@@ -4,7 +4,7 @@ namespace ACRobot {
 
 int Sonar::readSensor()
 {
-  int duration;
+  int duration, value;
   digitalWrite(_trigPin, LOW); 
   delayMicroseconds(2); 
   digitalWrite(_trigPin, HIGH); 
@@ -12,7 +12,15 @@ int Sonar::readSensor()
   digitalWrite(_trigPin, LOW); 
 
   duration = pulseIn(_echoPin, HIGH, _maxDist * 29 / 5); 
-  return duration * 5 / 29;
+  if (duration == 0 && _lastDuration > (_maxDist/2)) {
+    value = _maxDist;
+    _lastDuration = _maxDist * 29 / 5;
+  } else {
+    value = duration * 5 / 29;
+    _lastDuration = duration;
+  }
+
+  return value;
 }
 
 } // ACRobot namespace
