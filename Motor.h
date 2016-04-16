@@ -5,18 +5,28 @@
 
 namespace ACRobot {
 
-class DCMotorInterface: public PollingInterface
+static const int16_t MAX_POWER = 255;
+static const int16_t MIN_POWER = -MAX_POWER;
+
+class MotorInterface: public PollingInterface
 {
   public:
-    DCMotorInterface(): _power(0) {}
-    const int16_t& operator= (int16_t power) { return set(power); };
+    MotorInterface(): _power(0) {}
+
+    void setPower(int16_t power) {
+      if (power > MAX_POWER)
+        power = MAX_POWER;
+      if (power < MIN_POWER)
+        power = MIN_POWER;
+      set(power);
+    }
 
   protected:
     virtual int16_t& set(int16_t power) { return _power = power; };
     int16_t _power;
 };
 
-class DCMotor: public DCMotorInterface
+class DCMotor: public MotorInterface
 {
   public:
     DCMotor(uint8_t directPin, uint8_t pwmPin): _new_power(0), _directPin(directPin), _pwmPin(pwmPin)
@@ -28,7 +38,10 @@ class DCMotor: public DCMotorInterface
       clearDigitalPin(pwmPin);
     }
 
-    const int16_t& operator= (int16_t power) { return set(power); };
+    const int16_t& operator= (int16_t power) {
+      setPower(power);
+      return _new_power;
+    }
     operator int16_t const () { return _power; }
     bool poll();
 
