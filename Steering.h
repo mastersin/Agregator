@@ -34,7 +34,7 @@ class Steering: public MotorInterface
       if (angle < MIN_ANGLE)
         angle = MIN_ANGLE;
       _angle = angle;
-      //updateAdjust();
+      updateAdjust();
     }
 
     bool poll() {
