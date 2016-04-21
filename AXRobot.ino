@@ -2,6 +2,7 @@
 #include "Sonar.h"
 #include "Config.h"
 #include "Interval.h"
+#include "Encoder.h"
 
 //#define DEBUG
 
@@ -37,19 +38,24 @@ const uint8_t rightSonarPin = 10;
 Sonar leftSonar(trigSonarPin, leftSonarPin);
 Sonar rightSonar(trigSonarPin, rightSonarPin);
 
-enum State {
-    GLOBAL = 0,
-    SONARS = 1,
-    BLINK  = 2,
-    CONFIG = 3
+PCIntEncoder<A2> encoderA;
+PCIntEncoder<A3> encoderB;
+
+enum IntervalType {
+    GLOBAL,
+    SONARS,
+    ENCODERS,
+    BLINK,
+    CONFIG,
+    NUMBER_OF_INTERVALS
 };
 
-const unsigned long GLOBAL_INTERVAL = 10;
-const unsigned long SONARS_INTERVAL = 100;
-const unsigned long BLINK_INTERVAL  = 1000;
-const unsigned long CONFIG_INTERVAL = 10000;
+const unsigned long GLOBAL_INTERVAL   = 10;
+const unsigned long SONARS_INTERVAL   = 100;
+const unsigned long ENCODERS_INTERVAL = 200;
+const unsigned long BLINK_INTERVAL    = 1000;
+const unsigned long CONFIG_INTERVAL   = 10000;
 
-const uint8_t NUMBER_OF_INTERVALS = 4;
 Intervals<NUMBER_OF_INTERVALS> intervals;
 
 int poll()
@@ -67,10 +73,11 @@ void setup()
 
   settings = config();
 
-  intervals[GLOBAL] = GLOBAL_INTERVAL;
-  intervals[SONARS] = SONARS_INTERVAL;
-  intervals[BLINK]  = BLINK_INTERVAL;
-  intervals[CONFIG] = CONFIG_INTERVAL;
+  intervals[GLOBAL]   = GLOBAL_INTERVAL;
+  intervals[SONARS]   = SONARS_INTERVAL;
+  intervals[ENCODERS] = ENCODERS_INTERVAL;
+  intervals[BLINK]    = BLINK_INTERVAL;
+  intervals[CONFIG]   = CONFIG_INTERVAL;
 
 #ifdef DEBUG
   Serial.println("wait");
@@ -104,10 +111,32 @@ void sonars()
   flipflop = !flipflop;
 }
 
+void encoders()
+{
+  int speedA = encoderA.getSpeed();
+  int speedB = encoderB.getSpeed();
+
+#ifdef DEBUG
+  Serial.print("motorA = ");
+  Serial.print(mA);
+  Serial.print(", encoderA = ");
+  Serial.print(encoderA);
+  Serial.print(", sppedA = ");
+  Serial.println(speedA);
+
+  Serial.print("motorB = ");
+  Serial.print(mB);
+  Serial.print(", encoderB = ");
+  Serial.print(encoderB);
+  Serial.print(", sppedB = ");
+  Serial.println(speedB);
+#endif
+}
+
 void blink()
 {
   static bool led = true;
-  static int angle = 180;
+  static int angle = 0;
 
   if (led)
     clearDigitalPin(button);
@@ -137,6 +166,9 @@ void loop()
       break;
     case SONARS:
       sonars();
+      break;
+    case ENCODERS:
+      encoders();
       break;
     case BLINK:
       blink();
