@@ -1,4 +1,4 @@
-#include "Steering.h"
+#include "ControlMotor.h"
 #include "Sonar.h"
 #include "Config.h"
 #include "Interval.h"
@@ -29,7 +29,6 @@ Config<Settings> config(0x01, settings);
 
 DCMotorBreak mA(directA, pwmA, breakA);
 DCMotorBreak mB(directB, pwmB, breakB);
-Steering mControl(mA, mB);
 
 const uint8_t trigSonarPin = 4;
 const uint8_t leftSonarPin = 7;
@@ -40,6 +39,8 @@ Sonar rightSonar(trigSonarPin, rightSonarPin);
 
 PCIntEncoder<A2> encoderA;
 PCIntEncoder<A3> encoderB;
+
+EncoderSteering mControl(mA, mB, encoderA, encoderA);
 
 RotateEncoder<A4, A5> encoderR;
 
@@ -115,8 +116,8 @@ void sonars()
 
 void encoders()
 {
-  int speedA = encoderA.getSpeed();
-  int speedB = encoderB.getSpeed();
+  int speedA = mControl.getLeftSpeed();
+  int speedB = mControl.getRightSpeed();
 
 #ifdef DEBUG
   Serial.print("motorA = ");

@@ -26,7 +26,9 @@ class Steering: public MotorInterface
       setPower(_power - power);
       return _power;
     }
-    operator int16_t const () { return _power; }
+    operator int16_t const () {
+      return _power;
+    }
 
     void setAngle(int16_t angle) {
       if (angle > MAX_ANGLE)
@@ -55,22 +57,27 @@ class Steering: public MotorInterface
 
   private:
     void updateAdjust() {
-      int16_t angle = _angle > 0 ? _angle : -_angle;
-      int16_t adjust = (angle * _power) / (MAX_ANGLE / 2);
+      int16_t adjust = powerAdjust();
       _leftMotor.setPower(leftPower(adjust));
       _rightMotor.setPower(rightPower(adjust));
     }
+
+  protected:
+    int16_t powerAdjust() {
+      int16_t angle = _angle > 0 ? _angle : -_angle;
+      return (angle * _power) / (MAX_ANGLE / 2);
+    }
     int16_t leftPower(int16_t adjust) {
-      if (_angle <= 0 && _power >=0)
+      if (_angle <= 0 && _power >= 0)
         return _power;
-      if (_angle >= 0 && _power <=0)
+      if (_angle >= 0 && _power <= 0)
         return _power;
       return _power - adjust;
     }
     int16_t rightPower(int16_t adjust) {
-      if (_angle >= 0 && _power >=0)
+      if (_angle >= 0 && _power >= 0)
         return _power;
-      if (_angle <= 0 && _power <=0)
+      if (_angle <= 0 && _power <= 0)
         return _power;
       return _power - adjust;
     }
