@@ -59,11 +59,8 @@ class PCIntEncoder: public PCIntEncoderInterface, public EncoderInterface
     int getSpeed()
     {
       static unsigned long _prev = 0;
-      static unsigned long _prev_time = 0;
-      unsigned long current = millis();
-      int value = (counter() - _prev);// / (current - _prev_time);
+      int value = (counter() - _prev);
       _prev = counter();
-      _prev_time = current;
       return value;
     }
     void reset() { counter() = 0; }
@@ -90,11 +87,8 @@ class IntEncoder: public IntEncoderInterface, public EncoderInterface
     int getSpeed()
     {
       static unsigned long _prev = 0;
-      static unsigned long _prev_time = 0;
-      unsigned long current = millis();
-      int value = (counter() - _prev);// / (current - _prev_time);
+      int value = (counter() - _prev);
       _prev = counter();
-      _prev_time = current;
       return value;
     }
     void reset() { counter() = 0; }

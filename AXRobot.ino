@@ -124,9 +124,9 @@ void encoders()
   Serial.print(", encoderA = ");
   Serial.print(encoderA);
   Serial.print(", sppedA = ");
-  Serial.println(speedA);
+  Serial.print(speedA);
 
-  Serial.print("motorB = ");
+  Serial.print(" <-__-> motorB = ");
   Serial.print(mB);
   Serial.print(", encoderB = ");
   Serial.print(encoderB);
