@@ -39,7 +39,7 @@ class EncoderSteering: public Steering
 
   public:
     EncoderSteering(MotorInterface &leftMotor, MotorInterface &rightMotor, EncoderInterface &leftEncoder, EncoderInterface &rightEncoder, unsigned long interval = default_interval):
-      Steering(leftMotor, rightMotor), _leftEncoder(leftEncoder), _rightEncoder(rightEncoder), _interval(), _leftSpeed(), _rightSpeed(0) {}
+      Steering(leftMotor, rightMotor), _leftEncoder(leftEncoder), _rightEncoder(rightEncoder), _interval(interval), _leftSpeed(), _rightSpeed(0) {}
 
     const int16_t& operator= (int16_t power) {
       setPower(power);

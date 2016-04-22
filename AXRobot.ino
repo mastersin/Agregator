@@ -40,7 +40,7 @@ Sonar rightSonar(trigSonarPin, rightSonarPin);
 PCIntEncoder<A2> encoderA;
 PCIntEncoder<A3> encoderB;
 
-EncoderSteering mControl(mA, mB, encoderA, encoderA);
+EncoderSteering mControl(mA, mB, encoderA, encoderB);
 
 RotateEncoder<A4, A5> encoderR;
 
