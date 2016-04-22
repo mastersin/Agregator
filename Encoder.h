@@ -32,6 +32,17 @@ class IntEncoderInterface
     }
 };
 
+class RotateEncoderInterface
+{
+  public:
+    RotateEncoderInterface(uint8_t pin, uint8_t dir, voidFuncPtr tick)
+    {
+      pinMode(pin, INPUT);
+      pinMode(dir, INPUT);
+      PCattachInterrupt(pin, tick, FALLING);
+    }
+};
+
 template<int pin>
 class PCIntEncoder: public PCIntEncoderInterface, public EncoderInterface
 {
@@ -48,14 +59,17 @@ class PCIntEncoder: public PCIntEncoderInterface, public EncoderInterface
     int getSpeed()
     {
       static unsigned long _prev = 0;
+      static unsigned long _prev_time = 0;
       unsigned long current = millis();
-      int value = counter() / (current - _prev);
-      _prev = current;
+      int value = (counter() - _prev);// / (current - _prev_time);
+      _prev = counter();
+      _prev_time = current;
       return value;
     }
-  private:
-    static long &counter() {
-      static long _counter = 0;
+    void reset() { counter() = 0; }
+  protected:
+    static volatile long &counter() {
+      static volatile long _counter = 0;
       return _counter;
     }
 };
@@ -76,14 +90,41 @@ class IntEncoder: public IntEncoderInterface, public EncoderInterface
     int getSpeed()
     {
       static unsigned long _prev = 0;
+      static unsigned long _prev_time = 0;
       unsigned long current = millis();
-      int value = counter() / (current - _prev);
-      _prev = current;
+      int value = (counter() - _prev);// / (current - _prev_time);
+      _prev = counter();
+      _prev_time = current;
       return value;
     }
+    void reset() { counter() = 0; }
+  protected:
+    static volatile long &counter() {
+      static volatile long _counter = 0;
+      return _counter;
+    }
+};
+
+template<int pin, int dir>
+class RotateEncoder: public RotateEncoderInterface
+{
+  public:
+    static void tick() {
+      if (digitalRead(dir))
+        counter()++;
+      else
+        counter()--;
+    }
+    RotateEncoder(): RotateEncoderInterface(pin, dir, tick) {}
+    operator long() { return counter(); }
+
+    long getCounter() {
+      return counter();
+    }
+    void reset() { counter() = 0; }
   private:
-    static long &counter() {
-      static long _counter = 0;
+    static volatile long &counter() {
+      static volatile long _counter = 0;
       return _counter;
     }
 };

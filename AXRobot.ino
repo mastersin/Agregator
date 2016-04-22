@@ -8,7 +8,7 @@
 
 using namespace ACRobot;
 
-int16_t power = -145;
+int16_t power = 255;
 
 const uint8_t directA = 12;
 const uint8_t directB = 13;
@@ -40,6 +40,8 @@ Sonar rightSonar(trigSonarPin, rightSonarPin);
 
 PCIntEncoder<A2> encoderA;
 PCIntEncoder<A3> encoderB;
+
+RotateEncoder<A4, A5> encoderR;
 
 enum IntervalType {
     GLOBAL,
@@ -153,6 +155,28 @@ void blink()
   Serial.println(leftSonar());
   Serial.print("right sonar = ");
   Serial.println(rightSonar());
+#endif
+
+  if (encoderR != 0)
+  {
+#ifdef DEBUG
+  Serial.print("Power = ");
+  Serial.print(power);
+  Serial.print(" + encoder = ");
+  Serial.print(encoderR);
+  Serial.print(", Power += 10 * encoderR");
+  Serial.println(10 * encoderR);
+#endif
+    power += 10 * encoderR;
+    encoderR.reset();
+  } else {
+#ifdef DEBUG
+  Serial.print("encoderR = ");
+  Serial.println(encoderR);
+#endif
+  }
+
+#ifdef DEBUG
   Serial.println();
 #endif
 }
