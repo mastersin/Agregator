@@ -1,70 +1,61 @@
-#include "ControlMotor.h"
-#include "Sonar.h"
+#include "LCD.h"
 #include "Config.h"
 #include "Interval.h"
-#include "Encoder.h"
 
-//#define DEBUG
+#define DEBUG
 
 using namespace ACRobot;
 
-int16_t power = 255;
+const uint8_t columnPin = A0;
+const uint8_t coolerPin = A1;
+const uint8_t cubePin   = A2;
 
-const uint8_t directA = 12;
-const uint8_t directB = 13;
-const uint8_t pwmA = 3;
-const uint8_t pwmB = 11;
-const uint8_t breakA = 9;
-const uint8_t breakB = 8;
-const uint8_t button = 2;
+const uint8_t valvePin   = 8;
+const uint8_t heater1Pin = 9;
+const uint8_t heater2Pin = 10;
+
+uint16_t columnTemp;
+uint16_t coolerTemp;
+uint16_t cubeTemp;
 
 struct Settings
 {
   uint8_t status;
   uint32_t time;
+  uint32_t finish;
 };
 
-Settings settings = { 0, 0 };
-Config<Settings> config(0x01, settings);
+enum State
+{
+  StartHeat,
+  WaitCooler,
+  WaitHeater,
+  StopHeat,
+  RestartProcess
+};
 
-DCMotorBreak mA(directA, pwmA, breakA);
-DCMotorBreak mB(directB, pwmB, breakB);
-
-const uint8_t trigSonarPin = 4;
-const uint8_t leftSonarPin = 7;
-const uint8_t rightSonarPin = 10;
-
-Sonar leftSonar(trigSonarPin, leftSonarPin);
-Sonar rightSonar(trigSonarPin, rightSonarPin);
-
-PCIntEncoder<A2> encoderA;
-PCIntEncoder<A3> encoderB;
-
-EncoderSteering mControl(mA, mB, encoderA, encoderB);
-
-RotateEncoder<A4, A5> encoderR;
+Settings settings = { 0, 0, 0 };
+Config<Settings> config(0x02, settings);
 
 enum IntervalType {
     GLOBAL,
-    SONARS,
-    ENCODERS,
+    SCREEN,
     BLINK,
     CONFIG,
     NUMBER_OF_INTERVALS
 };
 
-const unsigned long GLOBAL_INTERVAL   = 10;
-const unsigned long SONARS_INTERVAL   = 100;
-const unsigned long ENCODERS_INTERVAL = 200;
+const unsigned long GLOBAL_INTERVAL   = 50;
+const unsigned long SCREEN_INTERVAL   = 100;
 const unsigned long BLINK_INTERVAL    = 1000;
 const unsigned long CONFIG_INTERVAL   = 10000;
 
 Intervals<NUMBER_OF_INTERVALS> intervals;
 
+LCD<LCD_1602A> lcd;
+
 int poll()
 {
-  mControl.poll();
-
   return intervals.status();
 }
 
@@ -77,109 +68,142 @@ void setup()
   settings = config();
 
   intervals[GLOBAL]   = GLOBAL_INTERVAL;
-  intervals[SONARS]   = SONARS_INTERVAL;
-  intervals[ENCODERS] = ENCODERS_INTERVAL;
   intervals[BLINK]    = BLINK_INTERVAL;
+  intervals[SCREEN]   = SCREEN_INTERVAL;
   intervals[CONFIG]   = CONFIG_INTERVAL;
 
 #ifdef DEBUG
   Serial.println("wait");
 #endif
 
-  waitForStartWithLED(button);
+//  waitForStartWithLED(button);
 
 #ifdef DEBUG
   Serial.println("start");
 #endif
 }
 
-void logic()
-{
-  if (leftSonar() < 100 || rightSonar() < 100) {
-    mControl = -power;
-  } else {
-    mControl = power;
-  }
-}
-
-void sonars()
-{
-  static bool flipflop = false;
-
-  if (flipflop)
-    leftSonar.poll();
-  else
-    rightSonar.poll();
-
-  flipflop = !flipflop;
-}
-
-void encoders()
-{
-  int speedA = mControl.getLeftSpeed();
-  int speedB = mControl.getRightSpeed();
-
-#ifdef DEBUG
-  Serial.print("motorA = ");
-  Serial.print(mA);
-  Serial.print(", encoderA = ");
-  Serial.print(encoderA);
-  Serial.print(", sppedA = ");
-  Serial.print(speedA);
-
-  Serial.print(" <-__-> motorB = ");
-  Serial.print(mB);
-  Serial.print(", encoderB = ");
-  Serial.print(encoderB);
-  Serial.print(", sppedB = ");
-  Serial.println(speedB);
-#endif
-}
-
 void blink()
 {
   static bool led = true;
-  static int angle = 0;
 
   if (led)
-    clearDigitalPin(button);
+    clearDigitalPin(13);
   else
-    setDigitalPin(button);
+    setDigitalPin(13);
 
-  mControl.setAngle(angle);
-
-  led = !led;
-  angle = -angle;
+  settings.time++;  
 
 #ifdef DEBUG
-  Serial.print("left sonar = ");
-  Serial.println(leftSonar());
-  Serial.print("right sonar = ");
-  Serial.println(rightSonar());
+  Serial.println("blink");
 #endif
+}
 
-  if (encoderR != 0)
+void screen()
+{
+  lcd.clear();
+  lcd.print(settings.status);
+  lcd.setCursor(2, 0);
+  lcd.print(settings.time);
+  lcd.setCursor(0, 1);
+  lcd.print(columnTemp);
+  lcd.setCursor(4, 1);
+  lcd.print(coolerTemp);
+  lcd.setCursor(8, 1);
+  lcd.print(cubeTemp);
+}
+
+uint16_t toTemp(uint16_t raw)
+{
+  const uint16_t minRaw = 554;
+
+  if (raw < minRaw)
+    raw = minRaw;
+
+  return (raw - 554) / 2;
+}
+
+void setState(uint8_t currentState)
+{
+  switch(currentState)
   {
-#ifdef DEBUG
-  Serial.print("Power = ");
-  Serial.print(power);
-  Serial.print(" + encoder = ");
-  Serial.print(encoderR);
-  Serial.print(", Power += 10 * encoderR");
-  Serial.println(10 * encoderR);
-#endif
-    power += 10 * encoderR;
-    encoderR.reset();
-  } else {
-#ifdef DEBUG
-  Serial.print("encoderR = ");
-  Serial.println(encoderR);
-#endif
+    case StartHeat:
+    case WaitCooler:
+      digitalWrite(valvePin,   LOW);
+      digitalWrite(heater1Pin, HIGH);
+      digitalWrite(heater2Pin, HIGH);
+      break;
+    case WaitHeater:
+      digitalWrite(valvePin,   HIGH);
+      digitalWrite(heater1Pin, HIGH);
+      digitalWrite(heater2Pin, HIGH);
+      break;
+    case StopHeat:
+    case RestartProcess:
+    default:
+      digitalWrite(valvePin,   LOW);
+      digitalWrite(heater1Pin, LOW);
+      digitalWrite(heater2Pin, LOW);
+      break;
+  }
+}
+
+uint8_t fsm(uint8_t currentState)
+{
+  uint8_t newState;
+  
+  switch(currentState)
+  {
+    case StartHeat:
+      newState = WaitCooler;
+      break;
+    case WaitCooler:
+      if (coolerTemp > 50)
+        newState = WaitHeater;
+      break;
+    case WaitHeater:
+      if (cubeTemp > 98) {
+        newState = StopHeat;
+        settings.finish = settings.time;
+      }
+      break;
+    case StopHeat:
+      if ((settings.finish + 60) < settings.time)
+        newState = RestartProcess;
+      break;
+    case RestartProcess:
+    default:
+      newState = StartHeat;
+      settings.finish = 0;
+      settings.time = 0;
+      break;
   }
 
+  return newState;
+}
+
+void logic()
+{
+  setState(settings.status);
+
+  columnTemp = toTemp(analogRead(columnPin));
+  coolerTemp = toTemp(analogRead(coolerPin));
+  cubeTemp   = toTemp(analogRead(cubePin));
+
 #ifdef DEBUG
-  Serial.println();
+  Serial.print(settings.time);
+  Serial.print(" (");
+  Serial.print(settings.finish);
+  Serial.print("): ");
+  Serial.print(columnTemp);
+  Serial.print(", ");
+  Serial.print(coolerTemp);
+  Serial.print(", ");
+  Serial.println(cubeTemp);
 #endif
+
+  uint8_t state = fsm(settings.status);
+  settings.status = state;
 }
 
 void loop()
@@ -189,17 +213,16 @@ void loop()
     case GLOBAL:
       logic();
       break;
-    case SONARS:
-      sonars();
-      break;
-    case ENCODERS:
-      encoders();
+    case SCREEN:
+      screen();
       break;
     case BLINK:
       blink();
       break;
     case CONFIG:
+      config(settings);
       config.poll();
       break;
   }
 }
+
