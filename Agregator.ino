@@ -13,6 +13,7 @@ const uint8_t cubePin   = A2;
 const uint8_t valvePin   = 8;
 const uint8_t heater1Pin = 9;
 const uint8_t heater2Pin = 10;
+const uint8_t buttonPin  = 12;
 
 uint16_t columnTemp;
 uint16_t coolerTemp;
@@ -27,7 +28,7 @@ struct Settings
 
 enum State
 {
-  StartHeat,
+  WaitStart,
   WaitCooler,
   WaitHeater,
   StopHeat,
@@ -35,7 +36,7 @@ enum State
 };
 
 Settings settings = { 0, 0, 0 };
-Config<Settings> config(0x02, settings);
+Config<Settings> config(0x03, settings);
 
 enum IntervalType {
     GLOBAL,
@@ -53,6 +54,8 @@ const unsigned long CONFIG_INTERVAL   = 10000;
 Intervals<NUMBER_OF_INTERVALS> intervals;
 
 LCD<LCD_1602A> lcd;
+
+Waiting waiting(buttonPin);
 
 int poll()
 {
@@ -105,6 +108,8 @@ void screen()
   lcd.print(settings.status);
   lcd.setCursor(2, 0);
   lcd.print(settings.time);
+  lcd.setCursor(8, 0);
+  lcd.print(settings.finish);
   lcd.setCursor(0, 1);
   lcd.print(columnTemp);
   lcd.setCursor(4, 1);
@@ -127,7 +132,6 @@ void setState(uint8_t currentState)
 {
   switch(currentState)
   {
-    case StartHeat:
     case WaitCooler:
       digitalWrite(valvePin,   LOW);
       digitalWrite(heater1Pin, HIGH);
@@ -139,6 +143,7 @@ void setState(uint8_t currentState)
       digitalWrite(heater2Pin, HIGH);
       break;
     case StopHeat:
+    case WaitStart:
     case RestartProcess:
     default:
       digitalWrite(valvePin,   LOW);
@@ -150,12 +155,27 @@ void setState(uint8_t currentState)
 
 uint8_t fsm(uint8_t currentState)
 {
-  uint8_t newState;
+  uint8_t newState = currentState;
+  static uint32_t lastTime = 0;
+
+  if (currentState != WaitStart) {
+    if(waiting) {
+      if (lastTime != 0) {
+        if ((lastTime + 5) < settings.time)
+          return RestartProcess;
+      } else
+        lastTime = settings.time;
+    } else lastTime = 0;
+  }
   
   switch(currentState)
   {
-    case StartHeat:
-      newState = WaitCooler;
+    case WaitStart:
+      if (waiting) {
+        settings.finish = 0;
+        settings.time = 0;
+        newState = WaitCooler;
+      }
       break;
     case WaitCooler:
       if (coolerTemp > 50)
@@ -173,8 +193,7 @@ uint8_t fsm(uint8_t currentState)
       break;
     case RestartProcess:
     default:
-      newState = StartHeat;
-      settings.finish = 0;
+      newState = WaitStart;
       settings.time = 0;
       break;
   }
@@ -184,13 +203,23 @@ uint8_t fsm(uint8_t currentState)
 
 void logic()
 {
-  setState(settings.status);
+  uint8_t state = settings.status;
+  setState(state);
 
   columnTemp = toTemp(analogRead(columnPin));
   coolerTemp = toTemp(analogRead(coolerPin));
   cubeTemp   = toTemp(analogRead(cubePin));
 
 #ifdef DEBUG
+  Serial.print(state);
+  Serial.print(" -> ");
+#endif
+
+  state = fsm(state);
+
+#ifdef DEBUG
+  Serial.print(state);
+  Serial.print(" = ");
   Serial.print(settings.time);
   Serial.print(" (");
   Serial.print(settings.finish);
@@ -202,7 +231,6 @@ void logic()
   Serial.println(cubeTemp);
 #endif
 
-  uint8_t state = fsm(settings.status);
   settings.status = state;
 }
 

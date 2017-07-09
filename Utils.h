@@ -35,6 +35,24 @@ class PollingInterface
     virtual bool poll() { return false; };
 };
 
+class Waiting
+{
+  uint8_t pin;
+public:
+  Waiting(uint8_t waitingPin): pin(waitingPin)
+  {
+    pinMode(pin, INPUT_PULLUP);
+  }
+  ~Waiting()
+  {
+    clearDigitalPin(pin);
+  }
+  operator bool()
+  {
+    return getDigitalPin(pin) != HIGH;
+  }
+};
+
 inline void waitForStart(uint8_t pin)
 {
   pinMode(pin, INPUT_PULLUP);
